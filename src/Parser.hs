@@ -29,10 +29,10 @@ number = readI <$> many1 (oneOf digits)
 readI :: String -> Int
 readI = read :: String -> Int
 
-tests :: S
-tests=
-  ["3 cuillères de Fruits"
-  ,"3 morceaux de pains"
+tests :: [String]
+tests =
+  [ "3 cuillères de Fruits"
+  , "3 morceaux de pains"
   ]
 
 main :: IO ()
