@@ -28,7 +28,7 @@ personForm mbr = renderDivs' mbr $ Recipe
     <$> areq textField "Name" Nothing
     <*> areq (check vv $ selectFieldList  [("msg"::Text, [])]) "Ingredients" Nothing
     <*> areq (check vv $ selectFieldList  [("msg"::Text, [])]) "Ingredients" Nothing
-    where 
+    where
         vv = const $ Left ("nope" :: Text)
         renderDivs' = const renderDivs
 
