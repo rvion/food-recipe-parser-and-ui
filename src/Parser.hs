@@ -3,6 +3,7 @@
 module Parser where
 import Control.Applicative
 import Data.Monoid
+import Data.List
 
 data Unit = Spoon | Grams | Pincee | None deriving (Show, Eq, Enum)
 data Quantity = Quantity Int Unit deriving (Show, Eq)
@@ -10,26 +11,24 @@ data Ingredient = Ingredient {quantity::Quantity, ingredient::String} deriving (
 
 tests :: [String]
 tests =
-  [ "3 cuillères de Fruits"
+  [ "3 cuilleres de sucre"
   , "3 morceaux de pains"
   , "5 bananes"
-  , "une pincée de sel"
+  , "deux pincées de sel"
   ]
 
 main :: IO ()
 main = mapM_ print $ map (snd . run parseIngredient) tests
 
 parseIngredient :: Parser Ingredient
-parseIngredient = Ingredient
-  <$> parseQuantity
-  <*> anyString
+parseIngredient = Ingredient <$> parseQuantity <*> anyString
 
 parseUnit :: Parser Unit
 parseUnit = spoon <|> grams <|> pincee <|> pure None
     where
         grams, spoon, pincee :: Parser Unit
-        grams = matchOneOfAs ["gr", "grams", "grammes"] Grams
-        spoon = matchOneOfAs ["gr", "grams", "grammes"] Spoon
+        grams = matchOneOfAs ["grammes", "grams", "gr"] Grams
+        spoon = matchOneOfAs ["cuilleres", "cuillere"] Spoon
         pincee = matchOneOfAs ["pincée de", "paincai"] Pincee
 
 parseQuantity :: Parser Quantity
@@ -38,12 +37,14 @@ parseQuantity = Quantity <$> sp number' <*> sp parseUnit
 ---------- PARSER LIB
 
 matchOneOfAs :: [String] -> a -> Parser a
-matchOneOfAs l u = P $ \str -> if elem str l then ([], Right u) else ([], Left (str <> " not found"))
+matchOneOfAs l u = P $ \str -> case find (\e -> isPrefixOf e str) l of 
+   Just found -> (drop (length found) str, Right u)
+   Nothing -> ([], Left (str <> " not found"))
 
 -- ^ number' can parse more litteral forms of numbers such as `une`
 number' :: Parser Int
 number' = readI <$> many1 (oneOf digits)
-      <|> sp (matchOneOfAs ["un", "une", "one"] 1)
+      <|> sp (matchOneOfAs ["une", "un", "one"] 1)
       <|> sp (matchOneOfAs ["deux", "dos", "two"] 2)
 
 number :: Parser Int
